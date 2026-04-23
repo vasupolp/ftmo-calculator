@@ -8,334 +8,283 @@
 <meta name="apple-mobile-web-app-title" content="FTMO Calc">
 <title>FTMO Risk Calculator</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  :root {
-    --bg: #0f0f1a; --card: #1a1a2e; --border: #2a2a3e;
-    --gold: #f0c040; --gold-dim: #c49a10;
-    --text: #e8e8f0; --muted: #888899; --hint: #555566;
-    --green: #4caf7d; --green-bg: #0d2a1a;
-    --red: #e05555; --red-bg: #2a0d0d;
-    --blue: #5599ee; --blue-bg: #0d1a2a;
-    --radius: 10px; --radius-sm: 7px;
-  }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-    background: var(--bg); color: var(--text); min-height: 100vh; }
-  .header { background: var(--card); border-bottom: 1px solid var(--border);
-    padding: 14px 16px 10px; position: sticky; top: 0; z-index: 10; }
-  .header h1 { font-size: 15px; font-weight: 600; color: var(--gold); letter-spacing: 0.5px; }
-  .header p { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .tabs { display: flex; background: var(--card); border-bottom: 1px solid var(--border); }
-  .tab { flex: 1; padding: 11px 4px; font-size: 13px; font-weight: 500; text-align: center;
-    color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
-    transition: color 0.15s; }
-  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
-  .content { padding: 12px; max-width: 480px; margin: 0 auto; }
-  .page { display: none; } .page.active { display: block; }
-
-  /* Cards */
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 14px; margin-bottom: 10px; }
-  .card-title { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
-
-  /* Settings */
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .field label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 5px; }
-  .field input, .field select {
-    width: 100%; height: 40px; font-size: 15px; font-weight: 500;
-    background: #111122; border: 1px solid var(--border); border-radius: var(--radius-sm);
-    padding: 0 11px; color: var(--text); outline: none;
-    transition: border-color 0.15s; -webkit-appearance: none; }
-  .field input:focus { border-color: var(--gold); }
-  .limits { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-  .limit-box { background: #111122; border-radius: var(--radius-sm); padding: 9px 10px; text-align: center; }
-  .limit-box span { display: block; font-size: 10px; color: var(--muted); margin-bottom: 3px; }
-  .limit-box strong { font-size: 14px; font-weight: 600; color: var(--text); }
-  .limit-box.danger strong { color: var(--red); }
-  .info-box { background: #111122; border-radius: var(--radius-sm); padding: 8px 11px;
-    font-size: 11px; color: var(--muted); line-height: 1.6; margin-top: 8px; }
-
-  /* Calculator */
-  .sec-label { font-size: 10px; font-weight: 600; color: var(--hint); letter-spacing: 1px;
-    text-transform: uppercase; padding: 4px 2px 5px; }
-  .sym-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 10px 12px; margin-bottom: 7px; }
-  .sym-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 9px; }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 7px; }
-  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 6px; }
-  .result-box { background: #111122; border-radius: 6px; padding: 5px 7px; text-align: center; }
-  .result-box span { display: block; font-size: 9px; color: var(--muted); margin-bottom: 2px; }
-  .result-box strong { font-size: 12px; font-weight: 600; color: var(--text); }
-  .result-box.profit strong { color: var(--green); }
-  .result-box.loss strong { color: var(--red); }
-  .save-btn { width: 100%; height: 34px; font-size: 13px; font-weight: 600;
-    background: var(--gold); color: #111; border: none; border-radius: 7px;
-    cursor: pointer; margin-top: 2px; letter-spacing: 0.3px;
-    transition: opacity 0.15s; -webkit-appearance: none; }
-  .save-btn:active { opacity: 0.8; }
-
-  /* Journal */
-  .stats3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-  .stat-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
-    padding: 9px 10px; text-align: center; }
-  .stat-box span { display: block; font-size: 10px; color: var(--muted); margin-bottom: 3px; }
-  .stat-box strong { font-size: 16px; font-weight: 600; }
-  .stat-box.pos strong { color: var(--green); }
-  .stat-box.neg strong { color: var(--red); }
-  .trade-item { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 11px 13px; margin-bottom: 7px; }
-  .trade-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .trade-sym { font-size: 14px; font-weight: 600; }
-  .badge { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 5px; }
-  .badge-W { background: var(--green-bg); color: var(--green); }
-  .badge-L { background: var(--red-bg); color: var(--red); }
-  .badge-BE { background: #1a1a2e; color: var(--muted); border: 1px solid var(--border); }
-  .badge-open { background: var(--blue-bg); color: var(--blue); }
-  .trade-info { display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; margin-bottom: 8px; }
-  .ti span { display: block; font-size: 9px; color: var(--muted); }
-  .ti strong { font-size: 11px; font-weight: 600; }
-  .trade-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 6px; }
-  .trade-inputs .field label { font-size: 9px; }
-  .trade-inputs .field input,
-  .trade-inputs .field select { height: 30px; font-size: 11px; }
-  .trade-result { text-align: right; font-size: 13px; font-weight: 600; }
-  .trade-result.pos { color: var(--green); }
-  .trade-result.neg { color: var(--red); }
-  .empty { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 13px; }
-  .danger-btn { width: 100%; height: 36px; margin-top: 12px; font-size: 12px;
-    background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm);
-    color: var(--muted); cursor: pointer; -webkit-appearance: none; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #0f0f1a; --card: #1a1a2e; --border: #2a2a3e;
+  --gold: #f0c040;
+  --text: #e8e8f0; --muted: #888899; --hint: #555566;
+  --green: #4caf7d; --green-bg: #0d2a1a;
+  --red: #e05555; --red-bg: #2a0d0d;
+  --blue: #5599ee; --blue-bg: #0d1a2a;
+  --radius: 10px; --radius-sm: 7px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh; }
+.header { background: var(--card); border-bottom: 1px solid var(--border);
+  padding: 14px 16px 10px; position: sticky; top: 0; z-index: 10; }
+.header h1 { font-size: 15px; font-weight: 600; color: var(--gold); letter-spacing: 0.5px; }
+.header p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.tabs { display: flex; background: var(--card); border-bottom: 1px solid var(--border);
+  position: sticky; top: 49px; z-index: 9; }
+.tab { flex: 1; padding: 11px 4px; font-size: 13px; font-weight: 500; text-align: center;
+  color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; }
+.tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+.content { padding: 12px; max-width: 520px; margin: 0 auto; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 14px; margin-bottom: 10px; }
+.card-title { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 5px; }
+.field input, .field select {
+  width: 100%; height: 40px; font-size: 15px; font-weight: 500;
+  background: #111122; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 0 11px; color: var(--text); outline: none; -webkit-appearance: none; }
+.field input:focus { border-color: var(--gold); }
+.limits { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.limit-box { background: #111122; border-radius: var(--radius-sm); padding: 9px 10px; text-align: center; }
+.limit-box span { display: block; font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+.limit-box strong { font-size: 14px; font-weight: 600; color: var(--text); }
+.limit-box.danger strong { color: var(--red); }
+.info-box { background: #111122; border-radius: var(--radius-sm); padding: 8px 11px;
+  font-size: 11px; color: var(--muted); line-height: 1.6; margin-top: 8px; }
+.sec-label { font-size: 10px; font-weight: 600; color: var(--hint); letter-spacing: 1px;
+  text-transform: uppercase; padding: 6px 2px 5px; }
+.sym-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 10px 12px; margin-bottom: 7px; }
+.sym-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 9px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 7px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+.result-box { background: #111122; border-radius: 6px; padding: 5px 7px; text-align: center; }
+.result-box span { display: block; font-size: 9px; color: var(--muted); margin-bottom: 2px; }
+.result-box strong { font-size: 12px; font-weight: 600; color: var(--text); }
+.result-box.profit strong { color: var(--green); }
+.result-box.loss strong { color: var(--red); }
+.save-btn { width: 100%; height: 36px; font-size: 13px; font-weight: 600;
+  background: var(--gold); color: #111; border: none; border-radius: 7px;
+  cursor: pointer; margin-top: 4px; -webkit-appearance: none; }
+.save-btn:active { opacity: 0.75; }
+.stats3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.stat-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 9px 10px; text-align: center; }
+.stat-box span { display: block; font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+.stat-box strong { font-size: 16px; font-weight: 600; color: var(--text); }
+.stat-box.pos strong { color: var(--green); }
+.stat-box.neg strong { color: var(--red); }
+.trade-item { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 11px 13px; margin-bottom: 7px; }
+.trade-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.trade-sym { font-size: 14px; font-weight: 600; }
+.badge { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 5px; }
+.badge-W { background: var(--green-bg); color: var(--green); }
+.badge-L { background: var(--red-bg); color: var(--red); }
+.badge-BE { background: #1a1a2e; color: var(--muted); border: 1px solid var(--border); }
+.badge-open { background: var(--blue-bg); color: var(--blue); }
+.trade-info { display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; margin-bottom: 8px; }
+.ti span { display: block; font-size: 9px; color: var(--muted); }
+.ti strong { font-size: 11px; font-weight: 600; }
+.trade-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+.trade-inputs .field input,
+.trade-inputs .field select { height: 30px; font-size: 11px; }
+.trade-result { text-align: right; font-size: 13px; font-weight: 600; }
+.trade-result.pos { color: var(--green); }
+.trade-result.neg { color: var(--red); }
+.empty { text-align: center; padding: 48px 16px; color: var(--muted); font-size: 13px; line-height: 2.2; }
+.danger-btn { width: 100%; height: 38px; margin-top: 12px; font-size: 12px;
+  background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--muted); cursor: pointer; -webkit-appearance: none; }
 </style>
 </head>
 <body>
-
 <div class="header">
   <h1>FTMO RISK CALCULATOR</h1>
   <p id="acct-label">Account: $25,000 · Risk: 0.5% · $125/trade</p>
 </div>
 <div class="tabs">
-  <div class="tab active" onclick="go('calc')">Calculator</div>
-  <div class="tab" onclick="go('settings')">Settings</div>
-  <div class="tab" onclick="go('journal')">Journal</div>
+  <div class="tab active" id="tab-calc" onclick="go('calc')">Calculator</div>
+  <div class="tab" id="tab-settings" onclick="go('settings')">Settings</div>
+  <div class="tab" id="tab-journal" onclick="go('journal')">Journal</div>
 </div>
-<div class="content">
-  <div id="page-calc" class="page active"></div>
-  <div id="page-settings" class="page"></div>
-  <div id="page-journal" class="page"></div>
-</div>
+<div class="content" id="main-content"></div>
 
 <script>
-const SYMS = {
-  Metals:  ['XAUUSD'],
-  Indices: ['US100','SPX500'],
-  Forex:   ['EURUSD','GBPUSD','USDJPY'],
-  Stocks:  ['NVDA','TSLA','AMD','AAPL','AMZN','META','COIN','JPM'],
-  Crypto:  ['BTCUSD','ETHUSD']
+var SYMS = {
+  'Metals':  ['XAUUSD'],
+  'Indices': ['US100','SPX500'],
+  'Forex':   ['EURUSD','GBPUSD','USDJPY'],
+  'Stocks':  ['NVDA','TSLA','AMD','AAPL','AMZN','META','COIN','JPM'],
+  'Crypto':  ['BTCUSD','ETHUSD']
 };
 
-let cfg = JSON.parse(localStorage.getItem('ftmo_cfg') || '{"acc":25000,"risk":0.5,"rr1":2,"rr2":3}');
-let trades = JSON.parse(localStorage.getItem('ftmo_trades') || '[]');
-let inp = {};
-let tab = 'calc';
+var cfg = {acc:25000, risk:0.5, rr1:2, rr2:3};
+var trades = [];
+var inp = {};
+var currentTab = 'calc';
 
-const save = () => localStorage.setItem('ftmo_cfg', JSON.stringify(cfg));
-const saveTrades = () => localStorage.setItem('ftmo_trades', JSON.stringify(trades));
-const riskUSD = () => cfg.acc * cfg.risk / 100;
-const maxDaily = () => -(cfg.acc * 0.05);
-const maxDD = () => -(cfg.acc * 0.10);
+try { var sc = localStorage.getItem('ftmo_cfg'); if(sc) cfg = JSON.parse(sc); } catch(e){}
+try { var st = localStorage.getItem('ftmo_trades'); if(st) trades = JSON.parse(st); } catch(e){}
 
-function calcLot(sym, entry, sl) {
-  if (!entry || !sl || entry === sl) return 0;
-  const diff = Math.abs(entry - sl);
-  if (['EURUSD','GBPUSD'].includes(sym)) return riskUSD() / (diff * 100000);
-  if (sym === 'USDJPY') return riskUSD() / (diff * 1000);
-  if (sym === 'XAUUSD') return riskUSD() / (diff * 100);
-  if (['US100','SPX500'].includes(sym)) return riskUSD() / diff;
-  if (sym === 'BTCUSD') return riskUSD() / diff;
-  if (sym === 'ETHUSD') return riskUSD() / diff;
-  return riskUSD() / diff;
+function saveCfg(){ try{ localStorage.setItem('ftmo_cfg', JSON.stringify(cfg)); }catch(e){} }
+function saveTrades(){ try{ localStorage.setItem('ftmo_trades', JSON.stringify(trades)); }catch(e){} }
+function riskUSD(){ return cfg.acc * cfg.risk / 100; }
+
+function calcLot(sym, e, s){
+  if(!e||!s||e===s) return 0;
+  var d = Math.abs(e-s);
+  if(sym==='EURUSD'||sym==='GBPUSD') return riskUSD()/(d*100000);
+  if(sym==='USDJPY') return riskUSD()/(d*1000);
+  if(sym==='XAUUSD') return riskUSD()/(d*100);
+  return riskUSD()/d;
+}
+function calcTP(e,s,rr){ return e+(e-s)*rr; }
+function fmtP(sym,v){
+  if(!v) return '—';
+  if(sym==='EURUSD'||sym==='GBPUSD') return v.toFixed(5);
+  if(sym==='USDJPY') return v.toFixed(3);
+  if(sym==='XAUUSD') return v.toFixed(2);
+  if(sym==='BTCUSD') return v.toFixed(0);
+  return v.toFixed(2);
 }
 
-function calcTP(entry, sl, rr) { return entry + (entry - sl) * rr; }
-
-function fmt(sym, val) {
-  if (!val) return '—';
-  if (['EURUSD','GBPUSD'].includes(sym)) return val.toFixed(5);
-  if (sym === 'USDJPY') return val.toFixed(3);
-  if (sym === 'XAUUSD') return val.toFixed(2);
-  if (['US100','SPX500'].includes(sym)) return val.toFixed(2);
-  if (sym === 'BTCUSD') return val.toFixed(0);
-  if (sym === 'ETHUSD') return val.toFixed(2);
-  return val.toFixed(2);
-}
-
-function go(t) {
-  tab = t;
-  document.querySelectorAll('.tab').forEach((el,i) => {
-    el.classList.toggle('active', ['calc','settings','journal'][i] === t);
+function go(t){
+  currentTab = t;
+  ['calc','settings','journal'].forEach(function(id){
+    var el = document.getElementById('tab-'+id);
+    if(el) el.className = 'tab'+(id===t?' active':'');
   });
   render();
 }
 
-function render() {
-  document.getElementById('page-calc').innerHTML = tab === 'calc' ? renderCalc() : '';
-  document.getElementById('page-settings').innerHTML = tab === 'settings' ? renderSettings() : '';
-  document.getElementById('page-journal').innerHTML = tab === 'journal' ? renderJournal() : '';
-  document.getElementById('acct-label').textContent =
-    `Account: $${cfg.acc.toLocaleString()} · Risk: ${cfg.risk}% · $${riskUSD().toFixed(0)}/trade`;
+function render(){
+  var el = document.getElementById('acct-label');
+  if(el) el.textContent = 'Account: $'+cfg.acc.toLocaleString()+' · Risk: '+cfg.risk+'% · $'+riskUSD().toFixed(0)+'/trade';
+  var c = document.getElementById('main-content');
+  if(!c) return;
+  if(currentTab==='calc') c.innerHTML = buildCalc();
+  else if(currentTab==='settings') c.innerHTML = buildSettings();
+  else c.innerHTML = buildJournal();
 }
 
-function renderSettings() {
-  return `
-  <div class="card">
-    <div class="card-title">Account Settings</div>
-    <div class="grid2">
-      <div class="field"><label>Account Size (USD)</label>
-        <input type="number" value="${cfg.acc}" onchange="setCfg('acc',this.value)"></div>
-      <div class="field"><label>Risk % / Trade</label>
-        <input type="number" step="0.1" value="${cfg.risk}" onchange="setCfg('risk',this.value)"></div>
-      <div class="field"><label>RR Ratio TP1</label>
-        <input type="number" value="${cfg.rr1}" onchange="setCfg('rr1',this.value)"></div>
-      <div class="field"><label>RR Ratio TP2</label>
-        <input type="number" value="${cfg.rr2}" onchange="setCfg('rr2',this.value)"></div>
-    </div>
-  </div>
-  <div class="limits">
-    <div class="limit-box"><span>Risk/Trade</span><strong>$${riskUSD().toFixed(0)}</strong></div>
-    <div class="limit-box danger"><span>Daily Limit</span><strong>$${maxDaily().toFixed(0)}</strong></div>
-    <div class="limit-box danger"><span>Max DD</span><strong>$${maxDD().toFixed(0)}</strong></div>
-  </div>
-  <div class="info-box">Max ${Math.floor(Math.abs(maxDaily())/riskUSD())} losses/day · Risk $${riskUSD().toFixed(2)}/trade</div>`;
+function buildSettings(){
+  return '<div class="card"><div class="card-title">Account Settings</div><div class="grid2">'+
+    '<div class="field"><label>Account Size (USD)</label><input type="number" value="'+cfg.acc+'" onchange="setCfg(\'acc\',this.value)"></div>'+
+    '<div class="field"><label>Risk % / Trade</label><input type="number" step="0.1" value="'+cfg.risk+'" onchange="setCfg(\'risk\',this.value)"></div>'+
+    '<div class="field"><label>RR Ratio TP1</label><input type="number" value="'+cfg.rr1+'" onchange="setCfg(\'rr1\',this.value)"></div>'+
+    '<div class="field"><label>RR Ratio TP2</label><input type="number" value="'+cfg.rr2+'" onchange="setCfg(\'rr2\',this.value)"></div>'+
+    '</div></div>'+
+    '<div class="limits">'+
+    '<div class="limit-box"><span>Risk/Trade</span><strong>$'+riskUSD().toFixed(0)+'</strong></div>'+
+    '<div class="limit-box danger"><span>Daily Limit</span><strong>$'+(-(cfg.acc*0.05)).toFixed(0)+'</strong></div>'+
+    '<div class="limit-box danger"><span>Max DD</span><strong>$'+(-(cfg.acc*0.10)).toFixed(0)+'</strong></div>'+
+    '</div>'+
+    '<div class="info-box">Max '+Math.floor(cfg.acc*0.05/riskUSD())+' losses/day · $'+riskUSD().toFixed(2)+'/trade</div>';
 }
 
-function setCfg(k, v) { cfg[k] = parseFloat(v)||0; save(); render(); }
+function setCfg(k,v){ cfg[k]=parseFloat(v)||0; saveCfg(); render(); }
 
-function renderCalc() {
-  let h = '';
-  for (const [cat, syms] of Object.entries(SYMS)) {
-    h += `<div class="sec-label">${cat}</div>`;
-    for (const sym of syms) {
-      const i = inp[sym] || {entry:'', sl:''};
-      const e = parseFloat(i.entry)||0, s = parseFloat(i.sl)||0;
-      const lot = calcLot(sym,e,s);
-      const tp1 = e&&s ? calcTP(e,s,1) : 0;
-      const tp2 = e&&s ? calcTP(e,s,cfg.rr1) : 0;
-      const tp3 = e&&s ? calcTP(e,s,cfg.rr2) : 0;
-      h += `<div class="sym-card">
-        <div class="sym-name">${sym}</div>
-        <div class="row2">
-          <div class="field"><label>Entry</label>
-            <input type="number" placeholder="0.00" value="${i.entry}" step="any"
-              oninput="setInp('${sym}','entry',this.value)"></div>
-          <div class="field"><label>Stop Loss</label>
-            <input type="number" placeholder="0.00" value="${i.sl}" step="any"
-              oninput="setInp('${sym}','sl',this.value)"></div>
-        </div>`;
-      if (e && s) {
-        h += `<div class="row3">
-          <div class="result-box"><span>Lot</span><strong>${lot.toFixed(2)}</strong></div>
-          <div class="result-box"><span>TP1 (1:1)</span><strong>${fmt(sym,tp1)}</strong></div>
-          <div class="result-box"><span>TP2 (1:${cfg.rr1})</span><strong>${fmt(sym,tp2)}</strong></div>
-          <div class="result-box"><span>TP3 (1:${cfg.rr2})</span><strong>${fmt(sym,tp3)}</strong></div>
-          <div class="result-box loss"><span>Loss</span><strong>-$${riskUSD().toFixed(2)}</strong></div>
-          <div class="result-box profit"><span>Profit 1:${cfg.rr2}</span><strong>+$${(riskUSD()*cfg.rr2).toFixed(2)}</strong></div>
-        </div>
-        <button class="save-btn" onclick="doSave('${sym}')">SAVE TO JOURNAL</button>`;
+function buildCalc(){
+  var h=''; var cats=Object.keys(SYMS);
+  for(var ci=0;ci<cats.length;ci++){
+    var cat=cats[ci]; var syms=SYMS[cat];
+    h+='<div class="sec-label">'+cat+'</div>';
+    for(var si=0;si<syms.length;si++){
+      var sym=syms[si];
+      var iv=inp[sym]||{entry:'',sl:''};
+      var e=parseFloat(iv.entry)||0, s=parseFloat(iv.sl)||0;
+      var lot=calcLot(sym,e,s);
+      h+='<div class="sym-card"><div class="sym-name">'+sym+'</div>';
+      h+='<div class="row2">'+
+        '<div class="field"><label>Entry</label><input type="number" placeholder="0.00" value="'+iv.entry+'" step="any" oninput="setInp(\''+sym+'\',\'entry\',this.value)"></div>'+
+        '<div class="field"><label>Stop Loss</label><input type="number" placeholder="0.00" value="'+iv.sl+'" step="any" oninput="setInp(\''+sym+'\',\'sl\',this.value)"></div>'+
+        '</div>';
+      if(e&&s){
+        var tp1=calcTP(e,s,1), tp2=calcTP(e,s,cfg.rr1), tp3=calcTP(e,s,cfg.rr2);
+        h+='<div class="row3">'+
+          '<div class="result-box"><span>Lot</span><strong>'+lot.toFixed(2)+'</strong></div>'+
+          '<div class="result-box"><span>TP1 (1:1)</span><strong>'+fmtP(sym,tp1)+'</strong></div>'+
+          '<div class="result-box"><span>TP2 (1:'+cfg.rr1+')</span><strong>'+fmtP(sym,tp2)+'</strong></div>'+
+          '<div class="result-box"><span>TP3 (1:'+cfg.rr2+')</span><strong>'+fmtP(sym,tp3)+'</strong></div>'+
+          '<div class="result-box loss"><span>Loss</span><strong>-$'+riskUSD().toFixed(2)+'</strong></div>'+
+          '<div class="result-box profit"><span>Profit 1:'+cfg.rr2+'</span><strong>+$'+(riskUSD()*cfg.rr2).toFixed(2)+'</strong></div>'+
+          '</div>'+
+          '<button class="save-btn" onclick="doSave(\''+sym+'\')">SAVE TO JOURNAL</button>';
       }
-      h += '</div>';
+      h+='</div>';
     }
   }
-  h += `<div class="info-box" style="margin-top:4px;">กรอก Entry + SL เพื่อคำนวณ · กด SAVE เพื่อบันทึก Journal</div>`;
+  h+='<div class="info-box" style="margin-top:4px;">กรอก Entry + SL เพื่อคำนวณ · กด SAVE เพื่อบันทึก Journal</div>';
   return h;
 }
 
-function setInp(sym, f, v) {
-  if (!inp[sym]) inp[sym] = {entry:'',sl:''};
-  inp[sym][f] = v;
+function setInp(sym,f,v){
+  if(!inp[sym]) inp[sym]={entry:'',sl:''};
+  inp[sym][f]=v;
   render();
 }
 
-function doSave(sym) {
-  const i = inp[sym]||{};
-  const e = parseFloat(i.entry)||0, s = parseFloat(i.sl)||0;
-  if (!e||!s) return;
-  const lot = calcLot(sym,e,s);
-  const tp = calcTP(e,s,cfg.rr2);
-  trades.push({
-    id: Date.now(), no: trades.length+1,
-    date: new Date().toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),
-    sym, entry:e, sl:s, tp:parseFloat(tp.toFixed(5)),
-    lot:parseFloat(lot.toFixed(2)), wl:'', result:'', note:''
-  });
+function doSave(sym){
+  var iv=inp[sym]||{}; var e=parseFloat(iv.entry)||0, s=parseFloat(iv.sl)||0;
+  if(!e||!s) return;
+  var lot=calcLot(sym,e,s); var tp=calcTP(e,s,cfg.rr2);
+  var now=new Date();
+  var ds=now.getDate()+'/'+(now.getMonth()+1)+' '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  trades.push({id:Date.now(),no:trades.length+1,date:ds,sym:sym,entry:e,sl:s,
+    tp:parseFloat(tp.toFixed(5)),lot:parseFloat(lot.toFixed(2)),wl:'',result:'',note:''});
   saveTrades();
-  inp[sym] = {entry:'',sl:''};
-  render();
+  inp[sym]={entry:'',sl:''};
   go('journal');
 }
 
-function renderJournal() {
-  const closed = trades.filter(t => t.wl==='W'||t.wl==='L');
-  const wins = closed.filter(t => t.wl==='W');
-  const wr = closed.length ? (wins.length/closed.length*100).toFixed(0)+'%' : '—';
-  const pnl = trades.reduce((s,t) => s+(parseFloat(t.result)||0), 0);
-  const pnlClass = pnl >= 0 ? 'pos' : 'neg';
-
-  let h = `<div class="stats3">
-    <div class="stat-box"><span>Trades</span><strong style="color:var(--text)">${trades.length}</strong></div>
-    <div class="stat-box"><span>Win Rate</span><strong style="color:var(--text)">${wr}</strong></div>
-    <div class="stat-box ${pnlClass}"><span>Total P&L</span><strong>$${pnl.toFixed(2)}</strong></div>
-  </div>`;
-
-  if (!trades.length) {
-    h += `<div class="empty">ยังไม่มี trade<br>กด SAVE TO JOURNAL จาก Calculator</div>`;
+function buildJournal(){
+  var closed=trades.filter(function(t){return t.wl==='W'||t.wl==='L';});
+  var wins=closed.filter(function(t){return t.wl==='W';});
+  var wr=closed.length?Math.round(wins.length/closed.length*100)+'%':'—';
+  var pnl=trades.reduce(function(s,t){return s+(parseFloat(t.result)||0);},0);
+  var h='<div class="stats3">'+
+    '<div class="stat-box"><span>Trades</span><strong>'+trades.length+'</strong></div>'+
+    '<div class="stat-box"><span>Win Rate</span><strong>'+wr+'</strong></div>'+
+    '<div class="stat-box '+(pnl>=0?'pos':'neg')+'"><span>Total P&amp;L</span><strong>$'+pnl.toFixed(2)+'</strong></div>'+
+    '</div>';
+  if(!trades.length){
+    h+='<div class="empty">ยังไม่มี trade<br>ไปที่ Calculator<br>กรอก Entry + SL<br>แล้วกด SAVE TO JOURNAL</div>';
     return h;
   }
-
-  const sorted = [...trades].reverse();
-  for (const t of sorted) {
-    const bClass = t.wl ? (t.wl==='B/E'?'badge-BE':'badge-'+t.wl) : 'badge-open';
-    const bText = t.wl || 'Open';
-    const rVal = parseFloat(t.result)||0;
-    const rClass = rVal > 0 ? 'pos' : rVal < 0 ? 'neg' : '';
-    h += `<div class="trade-item">
-      <div class="trade-top">
-        <span class="trade-sym">#${t.no} ${t.sym}</span>
-        <span class="badge ${bClass}">${bText}</span>
-      </div>
-      <div class="trade-info">
-        <div class="ti"><span>Date</span><strong>${t.date}</strong></div>
-        <div class="ti"><span>Entry</span><strong>${t.entry}</strong></div>
-        <div class="ti"><span>SL</span><strong>${t.sl}</strong></div>
-        <div class="ti"><span>Lot</span><strong>${t.lot}</strong></div>
-      </div>
-      <div class="trade-inputs">
-        <div class="field"><label>W / L / B/E</label>
-          <select onchange="updTrade(${t.id},'wl',this.value)">
-            <option value="" ${!t.wl?'selected':''}>—</option>
-            <option value="W" ${t.wl==='W'?'selected':''}>W</option>
-            <option value="L" ${t.wl==='L'?'selected':''}>L</option>
-            <option value="B/E" ${t.wl==='B/E'?'selected':''}>B/E</option>
-          </select></div>
-        <div class="field"><label>Result ($)</label>
-          <input type="number" value="${t.result}" placeholder="0"
-            onchange="updTrade(${t.id},'result',this.value)"></div>
-        <div class="field"><label>Note</label>
-          <input type="text" value="${t.note}" placeholder="..."
-            onchange="updTrade(${t.id},'note',this.value)"></div>
-      </div>
-      ${t.result ? `<div class="trade-result ${rClass}">$${parseFloat(t.result).toFixed(2)}</div>` : ''}
-    </div>`;
+  var sorted=trades.slice().reverse();
+  for(var i=0;i<sorted.length;i++){
+    var t=sorted[i];
+    var bc=t.wl?(t.wl==='B/E'?'badge-BE':'badge-'+t.wl):'badge-open';
+    var rv=parseFloat(t.result)||0;
+    var rc=rv>0?'pos':rv<0?'neg':'';
+    h+='<div class="trade-item">'+
+      '<div class="trade-top"><span class="trade-sym">#'+t.no+' '+t.sym+'</span><span class="badge '+bc+'">'+(t.wl||'Open')+'</span></div>'+
+      '<div class="trade-info">'+
+      '<div class="ti"><span>Date</span><strong>'+t.date+'</strong></div>'+
+      '<div class="ti"><span>Entry</span><strong>'+t.entry+'</strong></div>'+
+      '<div class="ti"><span>SL</span><strong>'+t.sl+'</strong></div>'+
+      '<div class="ti"><span>Lot</span><strong>'+t.lot+'</strong></div>'+
+      '</div>'+
+      '<div class="trade-inputs">'+
+      '<div class="field"><label>W/L/B/E</label><select onchange="updTrade('+t.id+',\'wl\',this.value)">'+
+      '<option value=""'+(!t.wl?' selected':'')+'>—</option>'+
+      '<option value="W"'+(t.wl==='W'?' selected':'')+'>W</option>'+
+      '<option value="L"'+(t.wl==='L'?' selected':'')+'>L</option>'+
+      '<option value="B/E"'+(t.wl==='B/E'?' selected':'')+'>B/E</option>'+
+      '</select></div>'+
+      '<div class="field"><label>Result ($)</label><input type="number" value="'+t.result+'" placeholder="0" onchange="updTrade('+t.id+',\'result\',this.value)"></div>'+
+      '<div class="field"><label>Note</label><input type="text" value="'+(t.note||'')+'" placeholder="..." onchange="updTrade('+t.id+',\'note\',this.value)"></div>'+
+      '</div>'+
+      (t.result!==''?'<div class="trade-result '+rc+'">$'+rv.toFixed(2)+'</div>':'')+
+      '</div>';
   }
-
-  h += `<button class="danger-btn" onclick="clearAll()">ล้าง Journal ทั้งหมด</button>`;
+  h+='<button class="danger-btn" onclick="clearAll()">ล้าง Journal ทั้งหมด</button>';
   return h;
 }
 
-function updTrade(id, f, v) {
-  const t = trades.find(x => x.id===id);
-  if (t) { t[f]=v; saveTrades(); render(); }
+function updTrade(id,f,v){
+  for(var i=0;i<trades.length;i++){ if(trades[i].id===id){trades[i][f]=v;break;} }
+  saveTrades(); render();
 }
 
-function clearAll() {
-  if (confirm('ล้าง Journal ทั้งหมด?')) { trades=[]; saveTrades(); render(); }
+function clearAll(){
+  if(confirm('ล้าง Journal ทั้งหมด?')){trades=[];saveTrades();render();}
 }
 
 render();
